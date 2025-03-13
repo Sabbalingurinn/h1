@@ -33,25 +33,60 @@ datasource db {
  * );
  */
 
+model User {
+  id          Int       @id @default(autoincrement())
+  username    String    @unique
+  email       String    @unique
+  password    String
+  admin       Boolean   @default(false)
+  created     DateTime  @default(now())
+  updated     DateTime  @updatedAt
+  articles    Article[]
+  comments    Comment[]
+}
+
+
+model Article {
+  id          Int        @id @default(autoincrement())
+  articlename String
+  content     String
+  date        DateTime   @default(now())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  category    Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId  Int?
+  comments    Comment[]
+  tags        ArticleTag[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  content   String
+  date      DateTime @default(now())
+}
+
 model Category {
-  id        Int        @id @default(autoincrement())
-  slug      String     @unique
-  name      String     @unique
-  questions Question[]
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  articles    Article[]
 }
 
-model Answer {
-  id         Int      @id @default(autoincrement())
-  text       String
-  questionId Int
-  question   Question @relation(fields: [questionId], references: [id])
-  correct    Boolean  @default(false)
+model Tag {
+  id       Int          @id @default(autoincrement())
+  name     String       @unique
+  articles ArticleTag[]
 }
 
-model Question {
-  id         Int      @id @default(autoincrement())
-  text       String
-  categoryId Int
-  category   Category @relation(fields: [categoryId], references: [id])
-  answers    Answer[]
+model ArticleTag {
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId Int
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId     Int
+
+  @@id([articleId, tagId])
 }
