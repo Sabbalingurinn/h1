@@ -18,14 +18,16 @@ async function main() {
   });
 
   // ✅ Create 6 regular users
-  const usersData = ['jon', 'magnus', 'piggi', 'bob', 'niall', 'josh'].map((username) => ({
-    username,
-    email: `${username}@example.com`,
-    password: bcrypt.hashSync('password123', BCRYPT_ROUNDS),
-  }));
+  const usersData = await Promise.all(
+    ['jon', 'magnus', 'piggi', 'bob', 'niall', 'josh'].map(async (username) => ({
+      username,
+      email: `${username}@example.com`,
+      password: await bcrypt.hash('password123', BCRYPT_ROUNDS),
+    }))
+  );
   await prisma.user.createMany({ data: usersData });
 
-  // Fetch all users after creation
+  // ✅ Fetch users
   const allUsers = await prisma.user.findMany();
   console.log('Users created:', allUsers.length);
 
@@ -39,7 +41,7 @@ async function main() {
     ],
   });
 
-  // Fetch categories (because createMany() doesn't return them)
+  // ✅ Fetch categories
   const allCategories = await prisma.category.findMany();
   console.log('Categories created:', allCategories.length);
 
@@ -48,7 +50,7 @@ async function main() {
     data: [{ name: 'hot' }, { name: 'trending' }, { name: 'unsafe' }],
   });
 
-  // Fetch tags
+  // ✅ Fetch tags
   const allTags = await prisma.tag.findMany();
   console.log('Tags created:', allTags.length);
 
@@ -62,7 +64,7 @@ async function main() {
 
   await prisma.article.createMany({ data: articlesData });
 
-  // Fetch all articles after creation
+  // ✅ Fetch all articles
   const allArticles = await prisma.article.findMany();
   console.log('Articles created:', allArticles.length);
 
@@ -78,17 +80,6 @@ async function main() {
         },
       });
     }
-  }
-
-  // ✅ Add 3 comments by unauthorized users
-  for (let i = 0; i < 3; i++) {
-    await prisma.comment.create({
-      data: {
-        content: 'This is an anonymous comment.',
-        articleId: allArticles[i].id,
-        userId: null, // No user assigned
-      },
-    });
   }
 
   console.log('Seeding complete!');
