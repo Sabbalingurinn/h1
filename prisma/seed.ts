@@ -1,53 +1,97 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
+
 const prisma = new PrismaClient();
+const BCRYPT_ROUNDS = 10;
 
 async function main() {
-  // Seed Categories
-  const categories = await prisma.category.createMany({
-    data: [
-      { name: 'HTML', description: 'HyperText Markup Language' },
-      { name: 'CSS', description: 'Cascading Style Sheets' },
-      { name: 'JavaScript', description: 'Programming language for the web' },
-    ],
-  });
+  console.log('Seeding database...');
 
-  console.log('Created categories');
-
-  // Seed Users
-  const user = await prisma.user.create({
+  // ✅ Create an admin user
+  const adminUser = await prisma.user.create({
     data: {
-      username: 'admin',
-      email: 'admin@example.com',
-      password: 'hashedpassword', // Replace with actual hashed password
+      username: 'olafur',
+      email: 'olafur@example.com',
+      password: await bcrypt.hash('osk', BCRYPT_ROUNDS),
       admin: true,
     },
   });
 
-  console.log('Created user:', user.username);
+  // ✅ Create 6 regular users
+  const usersData = ['jon', 'magnus', 'piggi', 'bob', 'niall', 'josh'].map((username) => ({
+    username,
+    email: `${username}@example.com`,
+    password: bcrypt.hashSync('password123', BCRYPT_ROUNDS),
+  }));
+  await prisma.user.createMany({ data: usersData });
 
-  // Seed Articles
-  const article = await prisma.article.create({
-    data: {
-      articlename: 'Introduction to HTML',
-      content: 'HTML is the standard markup language for documents...',
-      img: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
-      userId: user.id,
-      categoryId: 1,
-    },
+  // Fetch all users after creation
+  const allUsers = await prisma.user.findMany();
+  console.log('Users created:', allUsers.length);
+
+  // ✅ Create categories
+  await prisma.category.createMany({
+    data: [
+      { name: 'Icelandic' },
+      { name: 'Celebrity' },
+      { name: 'Sports' },
+      { name: 'Trump' },
+    ],
   });
 
-  console.log('Created article:', article.articlename);
+  // Fetch categories (because createMany() doesn't return them)
+  const allCategories = await prisma.category.findMany();
+  console.log('Categories created:', allCategories.length);
 
-  // Seed Comments
-  await prisma.comment.create({
-    data: {
-      content: 'Great introduction to HTML!',
-      userId: user.id,
-      articleId: article.id,
-    },
+  // ✅ Create tags
+  await prisma.tag.createMany({
+    data: [{ name: 'hot' }, { name: 'trending' }, { name: 'unsafe' }],
   });
 
-  console.log('Created comment');
+  // Fetch tags
+  const allTags = await prisma.tag.findMany();
+  console.log('Tags created:', allTags.length);
+
+  // ✅ Create 10 articles assigned to random users
+  const articlesData = Array.from({ length: 10 }).map((_, index) => ({
+    articlename: `Article ${index + 1}`,
+    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    userId: allUsers[Math.floor(Math.random() * allUsers.length)].id,
+    categoryId: allCategories[Math.floor(Math.random() * allCategories.length)].id,
+  }));
+
+  await prisma.article.createMany({ data: articlesData });
+
+  // Fetch all articles after creation
+  const allArticles = await prisma.article.findMany();
+  console.log('Articles created:', allArticles.length);
+
+  // ✅ Create 2 comments per article
+  for (const article of allArticles) {
+    for (let i = 0; i < 2; i++) {
+      const randomUser = allUsers[Math.floor(Math.random() * allUsers.length)];
+      await prisma.comment.create({
+        data: {
+          content: 'This is a comment.',
+          articleId: article.id,
+          userId: randomUser.id,
+        },
+      });
+    }
+  }
+
+  // ✅ Add 3 comments by unauthorized users
+  for (let i = 0; i < 3; i++) {
+    await prisma.comment.create({
+      data: {
+        content: 'This is an anonymous comment.',
+        articleId: allArticles[i].id,
+        userId: null, // No user assigned
+      },
+    });
+  }
+
+  console.log('Seeding complete!');
 }
 
 main()
@@ -55,7 +99,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error(e);
+    console.error('Seeding error:', e);
     await prisma.$disconnect();
     process.exit(1);
   });

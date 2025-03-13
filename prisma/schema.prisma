@@ -64,8 +64,8 @@ model Comment {
   id        Int      @id @default(autoincrement())
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId    Int?
   content   String
   date      DateTime @default(now())
 }
