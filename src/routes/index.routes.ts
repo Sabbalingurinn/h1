@@ -5,6 +5,7 @@ import articlesRoutes from './articles.routes.js';
 import categoriesRoutes from './categories.routes.js';
 import commentsRoutes from './comments.routes.js';
 import tagsRoutes from './tags.routes.js';
+import authRoutes from './auth.routes.js';
 
 
 const app = new Hono();
@@ -68,7 +69,9 @@ const routes = [
   },
 ];
 
+
 app.get('/', (c) => c.json(routes));
+app.route('/auth', authRoutes);
 app.route('/users', usersRoutes);
 app.route('/articles', articlesRoutes);
 app.route('/categories', categoriesRoutes);

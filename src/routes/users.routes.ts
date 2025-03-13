@@ -1,8 +1,9 @@
+// users.routes.ts
 import { Hono } from 'hono';
 import { PrismaClient } from '@prisma/client';
-
 import { auth, adminOnly } from '../middleware/auth.js';
-
+import type { Context } from 'hono';
+import type { UserPayload } from '../context.js';
 
 const prisma = new PrismaClient();
 const users = new Hono();
@@ -18,18 +19,15 @@ users.get('/:userId', async (c) => {
   return user ? c.json(user) : c.notFound();
 });
 
-users.post('/', async (c) => {
-  const data = await c.req.json();
-  const user = await prisma.user.create({ data });
-  return c.json(user);
-});
 
-users.patch('/:userId', auth, async (c) => {
-  const user = c.get('user');
+users.patch('/:userId', auth, async (c: Context) => {
   const userId = Number(c.req.param('userId'));
-  if (user.id !== userId) {
+  const loggedUser = c.get('user') as UserPayload; // <-- explicit typing here
+
+  if (loggedUser.id !== userId) {
     return c.json({ error: 'Unauthorized' }, 403);
   }
+
   const data = await c.req.json();
   const updatedUser = await prisma.user.update({ where: { id: userId }, data });
   return c.json(updatedUser);
