@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node ./dist/src/index.js",
+    "start": "npm run build && npm run prisma:seed && node ./dist/src/index.js",
     "test": "vitest run",
     "lint": "eslint .",
     "test:watch": "vitest",
@@ -12,8 +12,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "node dist/prisma/seed.js",
-    "postinstall": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed"
-  },  
+    "postinstall": "npm run prisma:generate && npm run prisma:migrate"
+  },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
