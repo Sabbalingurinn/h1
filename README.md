@@ -2,6 +2,7 @@
 
 Verekfnið sem hér var unnið er einskonar Blogg/frétta/artice síða. Hér getur notandi birt article, gert comment ofr. 
 
+ADMIN: username: olafur password: osk
 
 ### **Authentication**
 | Method | Endpoint  | Description |
