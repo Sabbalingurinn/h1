@@ -8,8 +8,12 @@
     "test": "vitest run",
     "lint": "eslint .",
     "test:watch": "vitest",
-    "test:coverage": "vitest --coverage"
-  },
+    "test:coverage": "vitest --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:seed": "node prisma/seed.js",
+    "postinstall": "npm run prisma:generate && npm run prisma:migrate && npm run prisma:seed"
+  },  
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
