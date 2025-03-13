@@ -4,7 +4,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
 
-import { api } from './routes/index.routes.js';
+import api  from '../src/routes/index.routes.js';
 
 const PORT = process.env.PORT ?? '3000';
 const port = Number.parseInt(PORT, 10);
