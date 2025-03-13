@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { PrismaClient } from '@prisma/client';
+
 import { auth, adminOnly } from '../middleware/auth.js';
+
 
 const prisma = new PrismaClient();
 const users = new Hono();
