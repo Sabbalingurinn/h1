@@ -1,8 +1,11 @@
 import { Hono } from 'hono';
-import { categoriesApi } from './categories.routes.js';
-import { questionsApi } from './questions.routes.js';
+import usersRoutes from './routes/users.routes';
+import articlesRoutes from './routes/articles.routes';
+import categoriesRoutes from './routes/categories.routes';
+import commentsRoutes from './routes/comments.routes';
+import tagsRoutes from './routes/tags.routes';
 
-export const api = new Hono();
+const app = new Hono();
 
 const routes = [
   {
@@ -10,24 +13,64 @@ const routes = [
     methods: ['GET'],
   },
   {
+    href: '/users',
+    methods: ['GET', 'POST'],
+  },
+  {
+    href: '/users/:userId',
+    methods: ['GET', 'PATCH', 'DELETE'],
+  },
+  {
+    href: '/articles',
+    methods: ['GET', 'POST'],
+  },
+  {
+    href: '/articles/:articleId',
+    methods: ['GET', 'PATCH', 'DELETE'],
+  },
+  {
     href: '/categories',
-    querystrings: ['limit', 'offset'],
     methods: ['GET', 'POST'],
   },
   {
-    href: '/categories/:slug',
-    methods: ['GET', 'PATCH', 'DELETE'],
+    href: '/categories/:categoryId/articles',
+    methods: ['GET'],
   },
   {
-    href: '/questions',
+    href: '/categories/:categoryId',
+    methods: ['PATCH'],
+  },
+  {
+    href: '/comments/:articleId',
+    methods: ['GET'],
+  },
+  {
+    href: '/comments/users/:userId/comments',
+    methods: ['GET'],
+  },
+  {
+    href: '/comments',
+    methods: ['POST'],
+  },
+  {
+    href: '/comments/:commentId',
+    methods: ['DELETE'],
+  },
+  {
+    href: '/tags',
     methods: ['GET', 'POST'],
   },
   {
-    href: '/questions/:id',
-    methods: ['GET', 'PATCH', 'DELETE'],
+    href: '/tags/:tagName/articles',
+    methods: ['GET'],
   },
 ];
 
-api.get('/', (c) => c.json(routes));
-api.route('/categories', categoriesApi);
-api.route('/questions', questionsApi);
+app.get('/', (c) => c.json(routes));
+app.route('/users', usersRoutes);
+app.route('/articles', articlesRoutes);
+app.route('/categories', categoriesRoutes);
+app.route('/comments', commentsRoutes);
+app.route('/tags', tagsRoutes);
+
+export default app;
