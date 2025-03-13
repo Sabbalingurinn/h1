@@ -1,148 +1,54 @@
 # Vefforritun 2 2025, verkefni 3 sýnilausn
 
-Lausn á verkefni 3 í vefforritun 2 2025.
+Verekfnið sem hér var unnið er einskonar Blogg/frétta/artice síða. Hér getur notandi birt article, gert comment ofr. 
 
-## Uppsetning
 
-Til að keyra verkefnið þarf að setja upp `.env` skrá með:
+### **Authentication**
+| Method | Endpoint  | Description |
+|--------|----------|-------------|
+| `POST` | `/auth`  | User authentication |
 
-- `DATABASE_URL` sem er tengistrengur fyrir PostgreSQL gagnagrunn
-- `STATIC_DATA=true` ef nota á „static“ gögn
+### **Users**
+| Method  | Endpoint         | Description |
+|---------|-----------------|-------------|
+| `GET`   | `/users`        | Fetch all users |
+| `POST`  | `/users`        | Create a new user |
+| `GET`   | `/users/:userId` | Get user details |
+| `PATCH` | `/users/:userId` | Update user details |
+| `DELETE`| `/users/:userId` | Delete user |
 
-Keyrsla:
+### **Articles**
+| Method  | Endpoint               | Description |
+|---------|------------------------|-------------|
+| `GET`   | `/articles`             | Fetch all articles |
+| `POST`  | `/articles`             | Create a new article |
+| `GET`   | `/articles/:articleId`  | Get article details |
+| `PATCH` | `/articles/:articleId`  | Update an article |
+| `DELETE`| `/articles/:articleId`  | Delete an article |
 
-```bash
-npm install
-npx prisma db push
-npx prisma db seed
+### **Categories**
+| Method  | Endpoint                     | Description |
+|---------|------------------------------|-------------|
+| `GET`   | `/categories`                 | Fetch all categories |
+| `POST`  | `/categories`                 | Create a new category |
+| `GET`   | `/categories/:categoryId/articles` | Get articles by category |
+| `PATCH` | `/categories/:categoryId`     | Update category details |
 
-# til að endursetja gagnagrunn
-npx prisma db push --force-reset
-npx prisma db seed
-```
+### **Comments**
+| Method  | Endpoint                          | Description |
+|---------|-----------------------------------|-------------|
+| `GET`   | `/comments/:articleId`            | Fetch comments for an article |
+| `GET`   | `/comments/users/:userId/comments`| Fetch comments by a user |
+| `POST`  | `/comments`                        | Create a new comment |
+| `DELETE`| `/comments/:commentId`             | Delete a comment |
 
-## Postman
+### **Tags**
+| Method  | Endpoint                  | Description |
+|---------|---------------------------|-------------|
+| `GET`   | `/tags`                     | Fetch all tags |
+| `POST`  | `/tags`                     | Create a new tag |
+| `GET`   | `/tags/:tagName/articles`   | Get articles by tag |
 
-Hægt er að setja inn `vef2-2025-v3.postman_collection.json` í Postman til að prófa vefþjónustuna.
+Óauðkenndur notandi getur einungis notast við get skipanir, notandi getur postað og patch/eytt sínum commentum. Admin getur gert allt við allt.
 
-## Uppskipting
-
-1. Hono sér um vefþjónustulagið
-2. Hjálparföll sjá um að staðfesta gögn
-3. Interface og types notuð til að útfæra _hvernig_ gögnum er skaffað fyrir vefþjónustu
-4. Prisma notað til að sækja gögn úr gagnagrunni
-5. „Static“ gögn líka möguleiki
-
-### Vefþjónustulag
-
-Við höldum vefþjónustulagi eins smáu og einföldu og við getum, eiginlega bara að sækja gögn úr þjónustu og útfrá svari að velja rétta HTTP stöðu ásamt því sem við skilum.
-
-Höldum okkur við það að þjónustulagið skili gögnum með viðeigandi stöðum og kasti aldrei villum.
-
-### Staðfesting á gögnum
-
-Zod notað til að staðfesta gögn, bæði sérstaklega fyrir hjálparföll og með Hono–Zod tengingu.
-
-### Interface og types
-
-Búum til interface og types fyrir það sem fer á milli vefþjónustulags og rest af forriti, sjá `src/types.ts`.
-
-Þó svo að við fórum yfir að nota `z.infer` í fyrirlestri þá notar þessi lausn aðra aðferði: allar týpur eru skilgreindar óháð öðru og síðan notaðar. Það gerir útfærslu alveg óháða því hvernig gögn eru skilgreind. Til að tryggja að týpur séu réttar á móti Zod er `satisfies` notað.
-
-Fyrir samskipti sem geta skilað villu er skilgreint almenn `Result` týpa sem getur annaðhvort verið að samskipti gengu og við fáum gögn eða að samskipti gengu ekki og við fáum villu. Með því getum við gert greinarmun á t.d. að eitthvað hafi farið úrskeiðis við að sækja gögn eða að gögn séu ekki til:
-
-```ts
-const result: Result<string | null> = getResult(slug);
-
-if (result.ok) {
-  // samskipti gengu
-
-  if (result.data === null) {
-    // gögn eru ekki til
-  } else {
-    // gögn eru til
-  }
-} else {
-  // samskipti gengu ekki, eitthvað fór úrskeiðis
-  console.error(result.error);
-}
-```
-
-### Gögn
-
-Með því að skilgreina interface sem skilar gögnum er hægt að búa til tvær (eða fleiri) útgáfur af gögnum, t.d. úr gagnagrunni og „static“.
-
-Static gögn eru einfaldlega harðkóðuð gögn sem er skilað, sjá `src/lib/categories.static.ts` og `src/lib/questions.static.ts`.
-
-## Prófanir á vefþjónustum
-
-cURL til að prófa vefþjónustur fylgja með dæmum um kall og svar (búið að fjarlægja suma headers). Gerir ráð fyrir að byrja með tóman gagnagrunn.
-
-### Flokkar
-
-Sækja alla flokka:
-
-```bash
-> curl -i http://localhost:3000/categories
-
-HTTP/1.1 200 OK
-content-type: application/json
-content-length: 43
-
-{"data":[],"total":0,"limit":10,"offset":0}
-```
-
-Búa til flokk:
-
-```bash
-> curl -i -X POST http://localhost:3000/categories -H "Content-Type: application/json" -d '{"name": "Aðgengi vefforrita"}'
-
-HTTP/1.1 201 Created
-content-type: application/json
-content-length: 64
-
-{"id":1,"slug":"agengi-vefforrita","name":"Aðgengi vefforrita"}
-```
-
-Sækja flokkinn:
-
-```bash
-> curl -i http://localhost:3000/categories/agengi-vefforrita
-
-HTTP/1.1 200 OK
-content-type: application/json
-content-length: 64
-
-{"id":1,"slug":"agengi-vefforrita","name":"Aðgengi vefforrita"}
-```
-
-Uppfæra flokkinn:
-
-```bash
-> curl -i -X PATCH http://localhost:3000/categories/agengi-vefforrita -H "Content-Type: application/json" -d '{"name": "Aðgengi"}'
-
-HTTP/1.1 200 OK
-content-type: application/json
-content-length: 42
-
-{"id":1,"slug":"agengi","name":"Aðgengi"}%
-```
-
-Eyða flokknum:
-
-```bash
-> curl -i -X DELETE http://localhost:3000/categories/agengi
-
-HTTP/1.1 204 No Content
-```
-
-## Test
-
-Test skrifuð með vitest. Til að keyra test:
-
-```bash
-npm test
-npm run test:watch # keyra test í watch mode
-npm run test:coverage # keyra test með coverage í watch mode
-```
-# h1
+BTW: (Örlítil hjálp ver fengin frá Hr. Chat GPT þegar við vorum í vandræðum)
