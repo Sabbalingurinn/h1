@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
-import usersRoutes from '../routes/users.routes.js';
-import articlesRoutes from '../routes/articles.routes.js';
-import categoriesRoutes from '../routes/categories.routes.js';
-import commentsRoutes from '../routes/comments.routes.js';
-import tagsRoutes from '../routes/tags.routes.js';
+
+import usersRoutes from './users.routes.js';
+import articlesRoutes from './articles.routes.js';
+import categoriesRoutes from './categories.routes.js';
+import commentsRoutes from './comments.routes.js';
+import tagsRoutes from './tags.routes.js';
+
 
 const app = new Hono();
 

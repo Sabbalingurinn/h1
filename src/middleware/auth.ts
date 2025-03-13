@@ -1,4 +1,4 @@
-import { Context, Next } from 'hono';
+import type { Context, Next } from 'hono';
 
 export async function auth(c: Context, next: Next) {
   // pseudo-logic, implement your JWT or session logic here

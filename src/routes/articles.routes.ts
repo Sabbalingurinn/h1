@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { PrismaClient } from '@prisma/client';
-import { auth } from '../middlewear/auth.js';
+import { auth } from '../middleware/auth.js';
+
 import cloudinary from '../cloudinary.js';
 
 const prisma = new PrismaClient();
