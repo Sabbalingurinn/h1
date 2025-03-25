@@ -7,7 +7,9 @@ ADMIN: username: olafur password: osk
 ### **Authentication**
 | Method | Endpoint  | Description |
 |--------|----------|-------------|
-| `POST` | `/auth`  | User authentication |
+| `POST` | `/auth/login`  | User login |
+| `POST` | `/auth/register`  | User register |
+
 
 ### **Users**
 | Method  | Endpoint         | Description |
