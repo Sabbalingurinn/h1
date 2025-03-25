@@ -11,7 +11,8 @@ const app = new Hono();
 
 const routes = [
   { href: '/', methods: ['GET'] },
-  { href: '/auth', methods: ['POST'] },
+  { href: '/auth/login', methods: ['POST'] },
+  { href: '/auth/register', methods: ['POST'] }, 
   { href: '/users', methods: ['GET', 'POST'] },
   { href: '/users/:userId', methods: ['GET', 'PATCH', 'DELETE'] },
   { href: '/articles', methods: ['GET', 'POST'] },
