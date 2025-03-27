@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 
 import usersRoutes from './users.routes.js';
 import articlesRoutes from './articles.routes.js';
@@ -8,6 +9,8 @@ import tagsRoutes from './tags.routes.js';
 import authRoutes from './auth.routes.js';
 
 const app = new Hono();
+
+app.use('/*', cors({ origin: '*' }));
 
 const routes = [
   { href: '/', methods: ['GET'] },
