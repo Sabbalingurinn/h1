@@ -8,10 +8,32 @@ const prisma = new PrismaClient();
 const articles = new Hono();
 
 // Get all articles
-articles.get('/', async (c) => {
-  const allArticles = await prisma.article.findMany();
-  return c.json(allArticles);
+articles.get('/:articleId', async (c) => {
+  const articleId = Number(c.req.param('articleId'));
+
+  if (isNaN(articleId)) {
+    return c.json({ error: 'Invalid article ID' }, 400);
+  }
+
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+
+  if (!article) {
+    return c.json({ error: 'Article not found' }, 404);
+  }
+
+  return c.json(article);
 });
+
 
 // Get articles by user
 articles.get('/users/:userId/articles', async (c) => {
