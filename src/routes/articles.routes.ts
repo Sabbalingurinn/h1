@@ -21,13 +21,20 @@ articles.get('/users/:userId/articles', async (c) => {
 });
 
 // Get a specific article
-articles.get('/:articleId', async (c) => {
-  const articleId = Number(c.req.param('articleId'));
-  const article = await prisma.article.findUnique({ where: { id: articleId } });
-
-  if (!article) return c.json({ error: 'Article not found' }, 404);
-  return c.json(article);
+articles.get('/', async (c) => {
+  const allArticles = await prisma.article.findMany({
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+  return c.json(allArticles);
 });
+
 
 // Delete article (only admin or owner)
 articles.delete('/:articleId', auth, async (c: AppContext) => {

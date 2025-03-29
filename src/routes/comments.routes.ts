@@ -9,15 +9,41 @@ const comments = new Hono();
 
 comments.get('/:articleId', async (c) => {
   const articleId = Number(c.req.param('articleId'));
-  const articleComments = await prisma.comment.findMany({ where: { articleId } });
+
+  const articleComments = await prisma.comment.findMany({
+    where: { articleId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+
   return c.json(articleComments);
 });
 
+
 comments.get('/users/:userId/comments', async (c) => {
   const userId = Number(c.req.param('userId'));
-  const userComments = await prisma.comment.findMany({ where: { userId } });
+
+  const userComments = await prisma.comment.findMany({
+    where: { userId },
+    include: {
+      article: {
+        select: {
+          id: true,
+          articlename: true,
+        },
+      },
+    },
+  });
+
   return c.json(userComments);
 });
+
 
 comments.post('/', async (c) => {
   const data = await c.req.json(); // Allow unauthenticated comments
