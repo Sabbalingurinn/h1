@@ -39,4 +39,18 @@ users.delete('/:id', auth, adminOnly, async (c) => {
   return c.json({ message: 'User deleted successfully' });
 });
 
+users.get('/:userId/articles', async (c) => {
+  const userId = parseInt(c.req.param('userId'), 10);
+
+  if (isNaN(userId)) {
+    return c.json({ error: 'Invalid user ID' }, 400);
+  }
+
+  const userArticles = await prisma.article.findMany({
+    where: { userId },
+  });
+
+  return c.json(userArticles);
+});
+
 export default users;

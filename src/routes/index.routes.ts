@@ -18,6 +18,7 @@ const routes = [
   { href: '/auth/register', methods: ['POST'] }, 
   { href: '/users', methods: ['GET', 'POST'] },
   { href: '/users/:userId', methods: ['GET', 'PATCH', 'DELETE'] },
+  { href: '/users/:userId/articles', methods: ['GET'] },
   { href: '/articles', methods: ['GET', 'POST'] },
   { href: '/articles/:articleId', methods: ['GET', 'PATCH', 'DELETE'] },
   { href: '/categories', methods: ['GET', 'POST'] },
