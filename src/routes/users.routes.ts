@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 const users = new Hono();
 
 users.get('/', async (c) => {
-  const allUsers = await prisma.user.findMany({ select: { username: true } });
+  const allUsers = await prisma.user.findMany({ select: { username: true, id: true } });
   return c.json(allUsers);
 });
 
