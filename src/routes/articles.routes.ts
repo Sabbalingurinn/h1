@@ -174,3 +174,4 @@ articles.post('/', auth, async (c: AppContext) => {
 
   return c.json(article, 201);
 });
+export default articles;
