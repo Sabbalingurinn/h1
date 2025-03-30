@@ -150,15 +150,22 @@ articles.post('/', auth, async (c: AppContext) => {
   }
 
   let categoryId: number | undefined = undefined;
-  if (categoryName) {
+  if (categoryName?.trim()) {
     const category = await prisma.category.findFirst({
-      where: { name: categoryName },
+      where: {
+        name: {
+          equals: categoryName.trim(),
+          mode: 'insensitive', // allows case-insensitive match
+        },
+      },
     });
-
+  
+    console.log('Found category:', category);
+  
     if (!category) {
       return c.json({ error: `Category "${categoryName}" not found` }, 400);
     }
-
+  
     categoryId = category.id;
   }
 
