@@ -45,10 +45,27 @@ comments.get('/users/:userId/comments', async (c) => {
 });
 
 
-comments.post('/', async (c) => {
-  const data = await c.req.json(); // Allow unauthenticated comments
-  const comment = await prisma.comment.create({ data });
-  return c.json(comment);
+comments.post('/', auth, async (c) => {
+  const user = c.get('user'); // Authenticated user info
+  const { articleId, content } = await c.req.json();
+
+  if (!articleId || !content) {
+    return c.json({ error: 'Article ID and content are required' }, 400);
+  }
+
+  try {
+    const comment = await prisma.comment.create({
+      data: {
+        articleId: Number(articleId),
+        content,
+        userId: user.id,
+      },
+    });
+
+    return c.json(comment, 201);
+  } catch (err) {
+    return c.json({ error: 'Failed to create comment', details: err }, 500);
+  }
 });
 
 comments.delete('/:commentId', auth, adminOnly, async (c) => {
