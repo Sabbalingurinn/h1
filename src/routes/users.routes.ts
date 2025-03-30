@@ -35,8 +35,28 @@ users.patch('/:userId', auth, async (c: Context) => {
 
 users.delete('/:id', auth, adminOnly, async (c) => {
   const id = Number(c.req.param('id'));
-  await prisma.user.delete({ where: { id } });
-  return c.json({ message: 'User deleted successfully' });
+
+  try {
+    // Delete comments associated with the user
+    await prisma.comment.deleteMany({
+      where: { userId: id },
+    });
+
+    // Delete articles associated with the user
+    await prisma.article.deleteMany({
+      where: { userId: id },
+    });
+
+    // Finally, delete the user
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    return c.json({ message: 'User and associated data deleted successfully' });
+  } catch (error) {
+    console.error('Deletion failed:', error);
+    return c.json({ error: 'Failed to delete user and associated data' }, 500);
+  }
 });
 
 users.get('/:userId/articles', async (c) => {
