@@ -10,14 +10,11 @@ const authRoutes = new Hono();
 authRoutes.post('/register', async (c) => {
   const { username, password, email } = await c.req.json();
 
-  const existingUserByUsername = await Promise.all([
-    findUserByUsername(username)
-  ]);
+  const existingUserByUsername = await findUserByUsername(username);
 
   if (existingUserByUsername) {
     return c.json({ error: 'Username already exists' }, 400);
   }
-
 
   const user = await createUser(username, email, password);
   delete (user as any).password;
