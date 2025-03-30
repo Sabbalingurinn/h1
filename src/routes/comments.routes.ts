@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { PrismaClient } from '@prisma/client';
 
 import { auth, adminOnly } from '../middleware/auth.js';
+import type { AppContext } from '../context.js';
 
 
 const prisma = new PrismaClient();
@@ -68,10 +69,29 @@ comments.post('/', auth, async (c) => {
   }
 });
 
-comments.delete('/:commentId', auth, adminOnly, async (c) => {
+comments.delete('/:commentId', auth, async (c: AppContext) => {
   const commentId = Number(c.req.param('commentId'));
-  await prisma.comment.delete({ where: { id: commentId } });
+  const user = c.get('user');
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+  });
+
+  if (!comment) {
+    return c.json({ error: 'Comment not found' }, 404);
+  }
+
+  // Check if the user is the comment author or an admin
+  if (comment.userId !== user.id && !user.admin) {
+    return c.json({ error: 'Unauthorized' }, 403);
+  }
+
+  await prisma.comment.delete({
+    where: { id: commentId },
+  });
+
   return c.json({ message: 'Comment deleted successfully' });
 });
+
 
 export default comments;

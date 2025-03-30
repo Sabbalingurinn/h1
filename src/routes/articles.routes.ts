@@ -63,16 +63,32 @@ articles.delete('/:articleId', auth, async (c: AppContext) => {
   const articleId = Number(c.req.param('articleId'));
   const user = c.get('user');
 
-  const existingArticle = await prisma.article.findUnique({ where: { id: articleId } });
-  if (!existingArticle) return c.json({ error: 'Article not found' }, 404);
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+  });
 
-  if (existingArticle.userId !== user.id && !user.admin) {
+  if (!article) {
+    return c.json({ error: 'Article not found' }, 404);
+  }
+
+  // Check if the user is the owner or an admin
+  if (article.userId !== user.id && !user.admin) {
     return c.json({ error: 'Unauthorized' }, 403);
   }
 
-  await prisma.article.delete({ where: { id: articleId } });
-  return c.json({ message: 'Article deleted successfully' });
+  // Delete all associated comments first
+  await prisma.comment.deleteMany({
+    where: { articleId },
+  });
+
+  // Then delete the article
+  await prisma.article.delete({
+    where: { id: articleId },
+  });
+
+  return c.json({ message: 'Article and its comments deleted successfully' });
 });
+
 
 // Update article with optional image upload (only admin or owner)
 articles.patch('/:articleId', auth, async (c: AppContext) => {
