@@ -125,32 +125,52 @@ articles.post('/', auth, async (c: AppContext) => {
   const body = await c.req.parseBody();
   const articlename = body['articlename'] as string;
   const content = body['content'] as string;
-  const categoryId = body['categoryId'] as string | undefined;
-  const file = body['image'] as File;
+  const categoryName = body['category'] as string | undefined;
+  const file = body['image'] as File | undefined;
 
-  if (!articlename || !content || !file) {
-    return c.json({ error: 'Article name, content, and image are required' }, 400);
+  if (!articlename || !content) {
+    return c.json({ error: 'Article name and content are required' }, 400);
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const base64Image = `data:${file.type};base64,${buffer.toString('base64')}`;
+  let imageUrl: string | undefined;
+  if (file) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64Image = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-  const uploadResult = await cloudinary.uploader.upload(base64Image, {
-    resource_type: 'image',
-  });
+      const uploadResult = await cloudinary.uploader.upload(base64Image, {
+        resource_type: 'image',
+      });
+
+      imageUrl = uploadResult.secure_url;
+    } catch (err) {
+      return c.json({ error: 'Image upload failed', details: err }, 500);
+    }
+  }
+
+  let categoryId: number | undefined = undefined;
+  if (categoryName) {
+    const category = await prisma.category.findFirst({
+      where: { name: categoryName },
+    });
+
+    if (!category) {
+      return c.json({ error: `Category "${categoryName}" not found` }, 400);
+    }
+
+    categoryId = category.id;
+  }
 
   const article = await prisma.article.create({
     data: {
       articlename,
       content,
-      img: uploadResult.secure_url,
+      img: imageUrl,
       userId: user.id,
-      categoryId: categoryId ? Number(categoryId) : undefined,
+      categoryId,
     },
   });
 
   return c.json(article, 201);
 });
-
-export default articles;
