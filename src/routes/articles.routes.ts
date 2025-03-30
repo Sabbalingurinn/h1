@@ -123,16 +123,18 @@ articles.patch('/:articleId', auth, async (c: AppContext) => {
 articles.post('/', auth, async (c: AppContext) => {
   const user = c.get('user');
   const body = await c.req.parseBody();
+
   const articlename = body['articlename'] as string;
   const content = body['content'] as string;
-  const categoryName = body['category'] as string | undefined;
+  const categoryId = body['categoryId'] as string | undefined;
   const file = body['image'] as File | undefined;
 
   if (!articlename || !content) {
     return c.json({ error: 'Article name and content are required' }, 400);
   }
 
-  let imageUrl: string | undefined;
+  let imageUrl: string | undefined = undefined;
+
   if (file) {
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -144,29 +146,9 @@ articles.post('/', auth, async (c: AppContext) => {
       });
 
       imageUrl = uploadResult.secure_url;
-    } catch (err) {
-      return c.json({ error: 'Image upload failed', details: err }, 500);
+    } catch (error) {
+      return c.json({ error: 'Image upload failed', details: error }, 500);
     }
-  }
-
-  let categoryId: number | undefined = undefined;
-  if (categoryName?.trim()) {
-    const category = await prisma.category.findFirst({
-      where: {
-        name: {
-          equals: categoryName.trim(),
-          mode: 'insensitive', // allows case-insensitive match
-        },
-      },
-    });
-  
-    console.log('Found category:', category);
-  
-    if (!category) {
-      return c.json({ error: `Category "${categoryName}" not found` }, 400);
-    }
-  
-    categoryId = category.id;
   }
 
   const article = await prisma.article.create({
@@ -175,10 +157,12 @@ articles.post('/', auth, async (c: AppContext) => {
       content,
       img: imageUrl,
       userId: user.id,
-      categoryId,
+      categoryId: categoryId ? Number(categoryId) : undefined,
     },
   });
 
   return c.json(article, 201);
 });
+
+
 export default articles;
