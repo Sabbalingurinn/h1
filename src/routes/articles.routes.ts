@@ -24,6 +24,11 @@ articles.get('/:articleId', async (c) => {
           username: true,
         },
       },
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
     },
   });
 
