@@ -29,7 +29,8 @@ const routes = [
   { href: '/comments', methods: ['POST'] },
   { href: '/comments/:commentId', methods: ['DELETE'] },
   { href: '/tags', methods: ['GET', 'POST'] },
-  { href: '/tags/:tagName/articles', methods: ['GET'] },
+  { href: '/tags/:tagName/articles', methods: ['GET','POST'] },
+
 ];
 
 app.get('/', (c) => c.json(routes));

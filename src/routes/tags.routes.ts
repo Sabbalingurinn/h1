@@ -26,4 +26,31 @@ tags.post('/', auth, async (c) => {
   return c.json(tag);
 });
 
+// tags.routes.ts or similar
+tags.post('/:tagName/articles', auth, async (c) => {
+  const { articleId } = await c.req.json(); // assuming articleId is sent in body
+  const tagName = c.req.param('tagName');
+  const user = c.get('user');
+
+  // Find the tag
+  const tag = await prisma.tag.findUnique({ where: { name: tagName } });
+  if (!tag) return c.json({ error: 'Tag not found' }, 404);
+
+  // Optional: verify user owns the article or is admin
+  const article = await prisma.article.findUnique({ where: { id: articleId } });
+  if (!article) return c.json({ error: 'Article not found' }, 404);
+  if (article.userId !== user.id && !user.admin) return c.json({ error: 'Unauthorized' }, 403);
+
+  // Link tag to article
+  await prisma.articleTag.create({
+    data: {
+      articleId,
+      tagId: tag.id,
+    },
+  });
+
+  return c.json({ message: 'Tag added to article' }, 200);
+});
+
+
 export default tags;
